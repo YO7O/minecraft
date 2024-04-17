@@ -12,10 +12,11 @@
 library(tidyverse)
 
 #### Simulate data ####
-data <- 
+simulated_player_data <- 
   tibble(
-    edpi = rnorm(n = 1000, mean = 100, sd = 10),
-    earnings = rnorm(n = 1000, mean = 20000, sd = 5000)
+    edpi = rnorm(n = 1000, mean = 300, sd = 100),
+    earnings = rnorm(n = 1000, mean = 20000, sd = 5000),
+    rating = rnorm(n = 1000, mean = 1, sd = 0.5)
   )
 
 

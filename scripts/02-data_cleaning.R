@@ -46,7 +46,8 @@ player_stats <-
 
 player_data <-
   merge(player_settings, player_earnings) |>
-  merge(player_stats)
+  merge(player_stats) |>
+  select(-player)
   
 
 #### Save data ####

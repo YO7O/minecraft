@@ -25,6 +25,7 @@ summary_stats <- function(data) {
   
   # Create a dataframe to store results
   summary_df <- data.frame(
+    name = names(means),
     mean = means,
     sd = sds,
     max = maxes,
@@ -34,8 +35,11 @@ summary_stats <- function(data) {
   return(summary_df)
 }
 
-summary_stats(player_data |> select(-player)) |>
-  kable(booktables = TRUE)
+player_summary <- summary_stats(player_data) 
+
+player_summary |>
+  kable(booktables = TRUE,
+        digits = 4)
 
 #### EDPI density ####
 player_data |> 
