@@ -4,23 +4,54 @@
 # Date: 26 March 2023
 # Contact: chif.chan@mail.utoronto.ca
 # License: MIT
-# Pre-requisites:
-# Any other information needed?
+# Pre-requisites: None
+# Any other information needed? None
 
 
 #### Workspace setup ####
-library(opendatatoronto)
-library(tidyverse)
-# [...UPDATE THIS...]
+library(xml2)
+library(rvest)
+library(httr)
+library(arrow)
 
 #### Download data ####
-# [...ADD CODE HERE TO DOWNLOAD...]
 
+## Player earniings ##
+raw_data <-
+  read_html(
+    "https://liquipedia.net/valorant/Portal:Statistics/Player_earnings"
+  )
 
+earnings_raw_data <-
+  raw_data |>
+  html_element(".wikitable") |>
+  html_table()
+
+## Player settings ##
+raw_data <-
+  read_html(
+    "https://prosettings.net/lists/valorant/"
+  )
+
+settings_raw_data <-
+  raw_data |>
+  html_element(".pro-table") |>
+  html_table()
+
+## Player statistics ##
+raw_data <-
+  read_html(
+    "https://www.vlr.gg/stats/?event_group_id=all&event_id=all&region=all&country=all&min_rounds=200&min_rating=1550&agent=all&map_id=all&timespan=all"
+  )
+
+stats_raw_data <-
+  raw_data |>
+  html_element(".wf-table") |>
+  html_table()
 
 #### Save data ####
-# [...UPDATE THIS...]
-# change the_raw_data to whatever name you assigned when you downloaded it.
-write_csv(the_raw_data, "inputs/data/raw_data.csv") 
+write_parquet(earnings_raw_data, "data/raw_data/earnings.parquet") 
+write_parquet(settings_raw_data, "data/raw_data/settings.parquet") 
+write_parquet(stats_raw_data, "data/raw_data/stats.parquet") 
 
          
