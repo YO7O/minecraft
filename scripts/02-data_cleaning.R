@@ -1,7 +1,7 @@
 #### Preamble ####
-# Purpose: 
+# Purpose: Clean and select data needed from raw data
 # Author: Kenneth Chan
-# Date: 26 March 2023
+# Date: 18 April 2023
 # Contact: chif.chan@mail.utoronto.ca
 # License: MIT
 # Pre-requisites: None
@@ -32,7 +32,8 @@ player_settings <-
   settings_raw_data |>
   clean_names() |>
   select(player, e_dpi) |>
-  drop_na()
+  drop_na() |>
+  rename(edpi = e_dpi)
 
 ## Player statistics ##
 player_stats <-
