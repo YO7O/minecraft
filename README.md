@@ -1,9 +1,11 @@
 # Valorant
 
+## Abstract
+This paper aims to analyze the correlation between mouse sensitivity and performance in Valorant. It is one of the common beliefs in Valorant, and many players try to improve at the game with this belief in mind. However, there is no evidence on correlation between sensitivity and performance is found in this paper.
+
 ## Overview
 
-We examine data about Valorant Esports professionals. We attempt to find out if there is relation between their earnings based on their settings
-
+This is the repo of the paper "Effects on mouse sensitivity to the performance in Valorant", and the paper can be reproduced by running all the scripts in `scripts` then `paper/paper.qd`
 
 ## File Structure
 
