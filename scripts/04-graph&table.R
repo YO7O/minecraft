@@ -11,23 +11,31 @@
 library(tidyverse)
 library(arrow)
 library(knitr)
+library(kableExtra)
+library(modelsummary)
+library(broom)
 
 #### Read data ####
-player_data <- read_parquet("data/analysis_data/player_data.parquet")
+player_data <- read_parquet(here::here("data/analysis_data/player_data.parquet"))
 
 #### Data summary ####
 summary_stats <- function(data) {
   # Calculate mean and standard deviation for each column
   means <- colMeans(data, na.rm = TRUE)
   sds <- apply(data, 2, sd, na.rm = TRUE)
+  medians <- apply(data, 2, median, na.rm = TRUE)
+  q25s <- sapply(data, quantile, 0.25)
+  q75s <- sapply(data, quantile, 0.75)
   maxes <- apply(data, 2, max, na.rm = TRUE)
   mins <- apply(data, 2, min, na.rm = TRUE)
   
   # Create a dataframe to store results
   summary_df <- data.frame(
-    name = names(means),
     mean = means,
     sd = sds,
+    median = medians,
+    q25 = q25s,
+    q75 = q75s,
     max = maxes,
     min = mins
   )
@@ -46,6 +54,13 @@ player_data |>
   ggplot(aes(x = edpi)) +
   geom_density(fill = "skyblue", color = "darkblue", alpha = 0.5) +
   labs(x = "Effective DPI", y = "Density") +
+  theme_minimal()
+
+#### Rating density ####
+player_data |> 
+  ggplot(aes(x = rating)) +
+  geom_density(fill = "skyblue", color = "darkblue", alpha = 0.5) +
+  labs(x = "Rating", y = "Density") +
   theme_minimal()
 
 #### Rating plot & model ####
@@ -74,12 +89,12 @@ rating_model <-
     data = player_data
   )
 
-summary(rating_model)
+modelsummary(rating_model, stars = TRUE, estimate = "estimate")
 
 #### Earnings plot & model ####
 earnings_base_plot <- 
   player_data |>
-  ggplot(aes(x = e_dpi, y = earnings)) +
+  ggplot(aes(x = edpi, y = earnings)) +
   geom_point(alpha = 0.5) +
   labs(
     x = "Effective DPI",
@@ -90,7 +105,7 @@ earnings_base_plot <-
 earnings_base_plot +
   geom_smooth(
     method = "lm",
-    se = FALSE,
+    se = TRUE,
     color = "black",
     linetype = "dashed",
     formula = "y ~ x"
@@ -98,8 +113,8 @@ earnings_base_plot +
 
 earnings_model <-
   lm(
-    earnings ~ e_dpi,
+    earnings ~ edpi,
     data = player_data
   )
 
-summary(earnings_model)
+modelsummary(earnings_model, stars = TRUE, estimate = "estimate")

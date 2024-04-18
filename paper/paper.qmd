@@ -1,14 +1,14 @@
 ---
-title: "My title"
-subtitle: "My subtitle if needed"
+title: "Effects on mouse sensitivity to the performance in Valorant"
+subtitle: ""
 author: 
-  - First author
-  - Another author
-thanks: "Code and data are available at: LINK."
+  - Kenneth Chan
+thanks: "Code and data are available at: https://github.com/YO7O/valorant"
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+abstract: "This paper aims to analyze the correlation between mouse sensitivity and performance in Valorant. It is one of the common beliefs in Valorant, and many players try to improve at the game with this belief in mind. However, there is no evidence on correlation between sensitivity and performance is found in this paper."
 format: pdf
+toc: true
 number-sections: true
 bibliography: references.bib
 ---
@@ -19,203 +19,253 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
-library(palmerpenguins)
 ```
-
 
 # Introduction
 
-You can and should cross-reference sections and sub-sections. We use @citeR and @rohan.
+Valorant is a competitive FPS(first person shooter) video games released on PC in 2020. It is a widely popular game, having over 19 million active players through out March 2024 (@valorantccvplayers), and 1.29 million concurrent viewers on Valorant Champion 2023 (@valorantccvviewers), which is the the culminating event in the Valorant competitive season.
 
-The remainder of this paper is structured as follows. @sec-data....
+Despite its popularity, there is rarely any analytics on the effects of different settings and gear on the performance on players. It could be a result of lack of data within the field, considering official rarely release any data towards the game, either it being player or the game statistics. Even if there is, it is usually in a social media post in picture form, which is very difficult to obtained the data from those source. Therefore, most of the data relies on third party website, which may seems as a credibility issue by some people.
 
+As one of first step in statistical analysis of the game Valorant, we aim to analyze the correlation between mouse sensitivity and performance on a professional level. There is a general acceptance that lower sensitivity is better for Valorant, as the game needs precise camera movement, and it can be more easily achieved using lower sensitivities. Therefore, we anticipate a lower sensitivity would result in better performance.
 
+However, despite the common belief, in this analysis we found no evident on correlation on sensitivity and performance. There are multiple possible reasons, that we will be discussing in @sec-weakness.
 
 # Data {#sec-data}
 
-Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+## Data Management
+
+This paper uses the R statistical programming language (@citeR), along with several packages, tidyverse (@tidyverse), janitor (@janitor), arrow (@arrow), readr (@readr) and here (@here). Web scraping is done with xml2 (@xml2), rvest (@rvest) and httr (@httr). All figures in this paper were created using the packages ggplot2 (@ggplot2) and the tables were created using knitr (@knitr) and (@modelsummary)
+
+## Data Source
+
+Player's mouse sensitivity related data are obtained from prosettings.net (@prosettings), and player performance related data are obtained from liquipedia (@liquipedia) and vlr.gg (@vlrgg). Data about Valorant are hard to obtained as officials does not release them, so we have to resort to alternative source. All of the three website above are community maintained with admin moderation, and they are constantly updated, which makes them one of the more credible source of data among Valorant community. Also there is no other source that have nearly as much of data of those three sites so these three sites are the best option available as data source.
+
+## Variable of interests
+
+Our analysis is interested in investigating the relation between player's mouse sensitivity and performance. In this paper, we use a dataset that contains only the top 500 players in earnings that have their sensitivity settings publicly available, which is 213 players in total. Moreover, this paper focus on anlayzing multiple variables, including EDPI, earnings, and rating. EDPi, or effective dpi, is a measurement for mouse sensitivity. The higher the edpi is, the higher the mouse sensitivity is. For example, for a EDPI of 200, 32.6 cm of mouse movement is needed to do a 180 degree turn, while only 16.3 cm is required for a EDPI of 400. Earnings refers to the player's total earnings from Valorant tournaments and events in their whole career, and rating takes into account of in game statistic to give a brief view on overall performance of the player. The bell curve distribution of player ratings was also adjusted to be centered on a mean of 1.0. Both lifetime total earnings and average rating is used to measure performance as earnings provide player's performance on a high pressure environment as there is a big stage and huge prize pool, while rating provide a general performance of a player on average. There is a few points worth noting. First, this list includes players from different league, so the best rating player might not be considered as the best player in the world if they are playing in a lower league. Second, Valorant franchising league started at 2023, and official events were open to any organization before franchising. After franchising, the prize pool has significantly increased, resulting in the achievement after year 2023 would give a player significantly higher earnings than previous years.
 
 ```{r}
-#| label: fig-bills
-#| fig-cap: Bills of penguins
 #| echo: false
-
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = "none") +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
-```
-
-Talk more about it.
-
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
-
-```{r}
-#| label: fig-planes
-#| fig-cap: Relationship between wing length and width
-#| echo: false
+#| eval: true
+#| label: tbl-playerdata
+#| tbl-cap: Profesionnal player's settings and performance
 #| warning: false
-#| message: false
 
-analysis_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
+library(tidyverse)
+library(arrow)
+library(knitr)
+library(kableExtra)
 
-analysis_data |> 
-  ggplot(aes(x = width, y = length)) +
-  geom_point(alpha = 0.8) +
-  theme_minimal() +
-  labs(x = "Wing width (mm)",
-       y = "Wing length (mm)")
+#### Read data ####
+player_data <- read_parquet(here::here("data/analysis_data/player_data.parquet"))
+
+summary_stats <- function(data) {
+  # Calculate mean and standard deviation for each column
+  means <- colMeans(data, na.rm = TRUE)
+  sds <- apply(data, 2, sd, na.rm = TRUE)
+  medians <- apply(data, 2, median, na.rm = TRUE)
+  q25s <- sapply(data, quantile, 0.25)
+  q75s <- sapply(data, quantile, 0.75)
+  maxes <- apply(data, 2, max, na.rm = TRUE)
+  mins <- apply(data, 2, min, na.rm = TRUE)
+  
+  # Create a dataframe to store results
+  summary_df <- data.frame(
+    mean = means,
+    sd = sds,
+    median = medians,
+    q25 = q25s,
+    q75 = q75s,
+    max = maxes,
+    min = mins
+  )
+  
+  return(summary_df)
+}
+
+player_summary <- summary_stats(player_data) 
+
+player_summary |>
+  kable(booktables = TRUE,
+        digits = 4)
+
+
 ```
 
-Talk way more about it. 
+As shown in @tbl-playerdata, there is a huge variation in EDPI, with a standard deviation of 79.8. This is expected as most players prefer different sensitivity, and both high and low sensitivity have players that performed great. One of the most famous player using high sensitivity is Jason "f0rsaken" Susanto, who have a rating of 1.13 with EDPI of 569.6. Meanwhile, the player who had a phenomenal performance last year, Max "Demon1" Mazanov also have a rating of 1.13 but with EDPI of 160. However, those two are at the extreme, as they are above 75% quantile and below 25% quantile respectively. 50% of the player in the dataset has a EDPI within 205.2 to 298.0, affirming most player prefer to use a lower sensitivity.The average rating of the dataset is 1.04, slightly higher than average of 1, which is expected as it only includes the top 500 players in earnings. Earnings have high standard deviation of 61940 with mean being 63275, which also make sense the huge difference of prize in going first and eighth in a event or tournament.
 
+\newpage
+
+```{r}
+#| label: fig-edpidensity
+#| fig-cap: Density of profesional player's EDPI
+#| echo: false
+
+player_data |> 
+  ggplot(aes(x = edpi)) +
+  geom_density(fill = "skyblue", color = "darkblue", alpha = 0.5) +
+  labs(x = "Effective DPI", y = "Density") +
+  theme_minimal()
+
+```
+
+Most of the player are using a EDPI of 100 to 400, with a few outliers (@fig-edpidensity). The distribution is roughly bell shaped with a peak at 240. However the peak is slightly lower than the mean 260.4 and median 251.2 (@tbl-playerdata), suggesting that the distribution is slightly right skewed. It could also be affected by the out liners, as most outliers are towards high EDPI.
+
+```{r}
+#| label: fig-ratingdensity
+#| fig-cap: Density of profesional player's rating
+#| echo: false
+
+player_data |> 
+  ggplot(aes(x = rating)) +
+  geom_density(fill = "skyblue", color = "darkblue", alpha = 0.5) +
+  labs(x = "Rating", y = "Density") +
+  theme_minimal()
+
+```
+
+With a close mean and median of 1.04 (@tbl-playerdata) and the bell shaped distribution of all professional players, we expect player's rating in the dataset will also have a bell distribution with a peak at mean. However, the distribution actually have a peak at around 1.03, and have a suprising distribution increase at around 1.1. We have no explanation on why it happens, and it is interesting and might be worthwhile to further investigate, however it is not within the main goal of this paper so we will have to leave it for future papers.
 
 
 # Model
 
-The goal of our modelling strategy is twofold. Firstly,...
-
-Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
+We have established that EDPI is a direct measurement of mouse sensitivity, and rating and earnings of a player is a rough estimation of their performance under different conditions. As main goal of the paper is to discover the existence of correlation between sensitivity and performance, we developed two models for further investigation.
 
 ## Model set-up
 
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.  
-
+```{=tex}
 \begin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_i + \gamma_i\\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-\beta &\sim \mbox{Normal}(0, 2.5) \\
-\gamma &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
+Y = \beta_0 + \beta_1 EDPI_i
 \end{align}
+In Model 1:
+\begin{itemize}
+  \item $Y$ is expected player's rating for different EDPI
+  \item $\beta_0$ is the coefficient for intercept, and the expected value of $Y$ when EDPI is zero
+  \item $\beta_1$ is the coefficient for the rate at which the player's rating changes for every one unit change in EDPI
+\end{itemize}
+```
+The independent variable of the model is the mouse sensitivity, measured in EDPI. The dependent variable is the player's lifetime average rating.
 
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
-
+```{=tex}
+\begin{align} 
+Y = \beta_0 + \beta_1 EDPI_i
+\end{align}
+In Model 2:
+\begin{itemize}
+  \item $Y$ is expected player's earnings for different EDPI
+  \item $\beta_0$ is the coefficient for intercept, and the expected value of $Y$ when EDPI is zero
+  \item $\beta_1$ is the coefficient for the rate at which the player's earnings changes for every one unit change in EDPI
+\end{itemize}
+```
+The independent variable of the model is the mouse sensitivity, measured in EDPI. The dependent variable is the player's lifetime total earnings.
 
 ### Model justification
 
-We expect a positive relationship between the size of the wings and time spent aloft. In particular...
+We anticipate the relationship between mouse sensitivity to performance would be close to linear and negative correlated. Valorant requires precise small camera movement for it's mid to long range gun fights, and the requirement of fast large camera movement can be minimized with the correct use of abilities in game. A lower sensitivity is generally better for small precise camera movement, since there is more room for error as player need to move the mouse across a larger distance to achieve the same camera movement, but at the cost of being slower on large camera movement, as there is physically more distance to travel on the player's mouse. The gameplay of Valorant greatly benefits from the precision from the lower sensitivity. As the dataset only contains top 500 professional players in Valorant, most of them can utilize the abilities to its max, and the negative of lower sensitivity can be hugely reduced, making low sensitivity it the seemingly best choice for the game.
 
-We can use maths by including latex between dollar signs, for instance $\theta$.
-
+\newpage
 
 # Results
 
-Our results are summarized in @tbl-modelresults.
+```{r}
+#| label: fig-model1
+#| fig-cap: Linear regression model of the professional player's rating by the change of EDPI
+#| echo: false
+
+rating_base_plot <- 
+  player_data |>
+  ggplot(aes(x = edpi, y = rating)) +
+  geom_point(alpha = 0.5) +
+  labs(
+    x = "EDPI",
+    y = "Rating"
+  ) +
+  theme_classic()
+
+rating_base_plot +
+  geom_smooth(
+    method = "lm",
+    se = TRUE,
+    color = "black",
+    linetype = "dashed",
+    formula = "y ~ x"
+  )
+
+```
+
+Model 1, as illustrated in @fig-model1 shows no significant evident that low sensitivity would result in better performance, despite the common believe in the Valorant community. The coefficient for the EDPI in the linear model is slightly negative, but the margin of errors shwon in grey area has includes both positive and negative linear relationship, hence there is no evident that low EDPI would result in higher average rating in this dataset.
+
+\newpage
+
+```{r}
+#| label: fig-model2
+#| fig-cap: Linear regression model of the professional player's earnings by the change of EDPI
+#| echo: false
+
+earnings_base_plot <- 
+  player_data |>
+  ggplot(aes(x = edpi, y = earnings)) +
+  geom_point(alpha = 0.5) +
+  labs(
+    x = "Effective DPI",
+    y = "Earnings (USD)"
+  ) +
+  theme_classic()
+
+earnings_base_plot +
+  geom_smooth(
+    method = "lm",
+    se = TRUE,
+    color = "black",
+    linetype = "dashed",
+    formula = "y ~ x"
+  )
+
+```
+
+Model 2, as illustrated in @fig-model2, also demonstrate that there is no significant evident that low sensitivity would result in better performance. Although it is more negatively correlated on average, the margin of errors shown in grey area still covers both positive and negative, hence there is no evident that low EDPI would result in higher total earnings in this dataset.
 
 ```{r}
 #| echo: false
 #| eval: true
-#| warning: false
-#| message: false
-
-library(rstanarm)
-
-first_model <-
-  readRDS(file = here::here("models/first_model.rds"))
-```
-
-```{r}
-#| echo: false
-#| eval: true
-#| label: tbl-modelresults
-#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
+#| label: tbl-model2
+#| tbl-cap: smth smth
 #| warning: false
 
-modelsummary::modelsummary(
-  list(
-    "First model" = first_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
+
+earnings_model <-
+  lm(
+    earnings ~ edpi,
+    data = player_data
+  )
+
+summary(earnings_model)
+
 ```
 
+As further proven by table of model 2, shown in @tbl-model2, EDPI has a negative coefficient but with a standard error is larger than the coefficient, resulting in the error covering both positive and negative correlation, which matches what was shown in @fig-model2. Intercept in this table can be disregarded considering playing with 0 EDPI means that you are unable to move the camera, and the dataset does not contain any EDPI close to zero, with the minimum was shown in @tbl-playerdata as 112.
 
-
+\newpage
 
 # Discussion
 
-## First discussion point {#sec-first-point}
+## Most professional player uses similar sensitivity
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+With 50% of the professional player in the dataset are using EDPI at the range from 205.2 to 298.0 which is shown in @tbl-playerdata, it is evident that most professional players prefer somewhat similar sensitivity. There is a few possible explanation, one of them is they naturally have better balance between large and small camera movement in this range, or they have followed some other player's settings when they started and they never changed it. 
 
-## Second discussion point
+## No evident on correlation between sensitivity and performance
 
-## Third discussion point
+As illustrated in @fig-model1 and @fig-model2, both models shown no evidence on correlation between sensitivity and performance, whether the performance is measured in average rating or total earnings. Those two variables describes performance in slightly different scenarios, one being the lifetime average performance and another being the performance under pressure. Despite both perfomance metrices shown no evidence on correlation to sensitivity, total earnings shows a slightly more likelihood on negative correlation than average rating with a larger coefficient of EDPI. It might be caused by the lack of micro control on hand movement when human is nervous or under pressure, and high sensitivity players are more prone to be affected by it.
 
 ## Weaknesses and next steps
 
-Weaknesses and next steps should also be included.
+### Weakness {#sec-weakness}
+This dataset only contains part of the professional players, and different league of professional players are included, so the rating might not be accurate. Also as mentioned before, although the data is from the one of the most credible source currently available, it is still not quite complete comparing to established other sports like football or basketball, and we have very few metrics that can effectively measure the performance of a singular player. The amount of data is also very low comparing to traditional sports, which could be a potential issue.
+
+### Next steps
+There are multiple ways on how future study can be done. One of them is tracking players that transitioned from other games that favors a higher sensitivity, and see if their sensitivity changes dependent on different games, which can potentially find out if players are naturally gravitated towards one sensitivity or it would change depends from game to game. Another one is limiting the dataset to only include the profesinal player in the biggest league, which is the Valorant franchised league. However there is no dataset on which player is in the franchised league and some tricky method of web scraping is needed to obtain which team is a franchised team. Also, as there is different agent with different abilities in the game, investigation on if agent preference and sensitivity is related can be done. Lastly, and probably the most important one is making a dataset, recording the settings and performance metrics of professional players regularly, so there will be more data available for future studies.
 
 \newpage
-
-\appendix
-
-# Appendix {-}
-
-
-# Additional data details
-
-# Model details {#sec-model-details}
-
-## Posterior predictive check
-
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
-
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
-
-```{r}
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-ppcheckandposteriorvsprior
-#| layout-ncol: 2
-#| fig-cap: "Examining how the model fits, and is affected by, the data"
-#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
-
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
-
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
-```
-
-## Diagnostics
-
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
-
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
-
-```{r}
-#| echo: false
-#| eval: true
-#| message: false
-#| warning: false
-#| label: fig-stanareyouokay
-#| fig-cap: "Checking the convergence of the MCMC algorithm"
-#| fig-subcap: ["Trace plot", "Rhat plot"]
-#| layout-ncol: 2
-
-plot(first_model, "trace")
-
-plot(first_model, "rhat")
-```
-
-
-
-\newpage
-
 
 # References
-
-
