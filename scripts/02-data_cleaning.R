@@ -46,9 +46,11 @@ player_stats <-
 
 player_data <-
   merge(player_settings, player_earnings) |>
-  merge(player_stats) |>
-  select(-player)
+  merge(player_stats)
   
 
 #### Save data ####
 write_parquet(player_data, "data/analysis_data/player_data.parquet")
+
+#### Clean up all object ####
+rm(list = ls())

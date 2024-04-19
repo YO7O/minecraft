@@ -25,4 +25,5 @@ min(player_data$rating) >= 0.36
 max(player_data$edpi) <= 1208
 min(player_data$edpi) >= 112
 
-
+#### Clean up all object ####
+rm(list = ls())

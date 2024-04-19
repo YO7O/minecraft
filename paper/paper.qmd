@@ -19,6 +19,11 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
+library(arrow)
+library(knitr)
+library(kableExtra)
+library(modelsummary)
+
 ```
 
 # Introduction
@@ -52,11 +57,6 @@ Our analysis is interested in investigating the relation between player's mouse 
 #| tbl-cap: Profesionnal player's settings and performance
 #| warning: false
 
-library(tidyverse)
-library(arrow)
-library(knitr)
-library(kableExtra)
-
 #### Read data ####
 player_data <- read_parquet(here::here("data/analysis_data/player_data.parquet"))
 
@@ -84,7 +84,7 @@ summary_stats <- function(data) {
   return(summary_df)
 }
 
-player_summary <- summary_stats(player_data) 
+player_summary <- summary_stats(player_data |> select(-player)) 
 
 player_summary |>
   kable(booktables = TRUE,
@@ -94,8 +94,6 @@ player_summary |>
 ```
 
 As shown in @tbl-playerdata, there is a huge variation in EDPI, with a standard deviation of 79.8. This is expected as most players prefer different sensitivity, and both high and low sensitivity have players that performed great. One of the most famous player using high sensitivity is Jason "f0rsaken" Susanto, who have a rating of 1.13 with EDPI of 569.6. Meanwhile, the player who had a phenomenal performance last year, Max "Demon1" Mazanov also have a rating of 1.13 but with EDPI of 160. However, those two are at the extreme, as they are above 75% quantile and below 25% quantile respectively. 50% of the player in the dataset has a EDPI within 205.2 to 298.0, affirming most player prefer to use a lower sensitivity.The average rating of the dataset is 1.04, slightly higher than average of 1, which is expected as it only includes the top 500 players in earnings. Earnings have high standard deviation of 61940 with mean being 63275, which also make sense the huge difference of prize in going first and eighth in a event or tournament.
-
-\newpage
 
 ```{r}
 #| label: fig-edpidensity
@@ -125,7 +123,7 @@ player_data |>
 
 ```
 
-With a close mean and median of 1.04 (@tbl-playerdata) and the bell shaped distribution of all professional players, we expect player's rating in the dataset will also have a bell distribution with a peak at mean. However, the distribution actually have a peak at around 1.03, and have a suprising distribution increase at around 1.1. We have no explanation on why it happens, and it is interesting and might be worthwhile to further investigate, however it is not within the main goal of this paper so we will have to leave it for future papers.
+With a close mean and median of 1.04 (@tbl-playerdata) and the bell shaped distribution of all professional players, we expect player's rating in the dataset will also have a bell distribution with a peak at mean. However, the distribution actually have a peak at around 1.03 (@fig-ratingdensity), and have a suprising distribution increase at around 1.1. We have no explanation on why it happens, and it is interesting and might be worthwhile to further investigate, however it is not within the main goal of this paper so we will have to leave it for future papers.
 
 
 # Model
@@ -230,7 +228,7 @@ Model 2, as illustrated in @fig-model2, also demonstrate that there is no signif
 #| echo: false
 #| eval: true
 #| label: tbl-model2
-#| tbl-cap: smth smth
+#| tbl-cap: Model summary of the professional player's earnings by the change of EDPI
 #| warning: false
 
 
@@ -240,11 +238,11 @@ earnings_model <-
     data = player_data
   )
 
-summary(earnings_model)
+modelsummary(earnings_model, stars = TRUE, estimate = "estimate")
 
 ```
 
-As further proven by table of model 2, shown in @tbl-model2, EDPI has a negative coefficient but with a standard error is larger than the coefficient, resulting in the error covering both positive and negative correlation, which matches what was shown in @fig-model2. Intercept in this table can be disregarded considering playing with 0 EDPI means that you are unable to move the camera, and the dataset does not contain any EDPI close to zero, with the minimum was shown in @tbl-playerdata as 112.
+As further proven by summary of model 2, shown in @tbl-model2, EDPI has a negative coefficient of -37.28 but with a standard error of 53.65, which is larger than the coefficient. In result, the margin of error is covering both positive and negative correlation, which matches what was shown in @fig-model2. Intercept in this table can be disregarded considering playing with 0 EDPI means that you are unable to move the camera, and the dataset does not contain any EDPI close to zero, with the minimum was shown in @tbl-playerdata as 112.
 
 \newpage
 

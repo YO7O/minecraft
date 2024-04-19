@@ -43,7 +43,7 @@ summary_stats <- function(data) {
   return(summary_df)
 }
 
-player_summary <- summary_stats(player_data) 
+player_summary <- summary_stats(player_data |> select(-player)) 
 
 player_summary |>
   kable(booktables = TRUE,
@@ -117,4 +117,10 @@ earnings_model <-
     data = player_data
   )
 
+broom::tidy(earnings_model) |>
+  kable(booktables = TRUE)
+
 modelsummary(earnings_model, stars = TRUE, estimate = "estimate")
+
+#### Clean up all object ####
+rm(list = ls())

@@ -54,4 +54,5 @@ write_parquet(earnings_raw_data, "data/raw_data/earnings.parquet")
 write_parquet(settings_raw_data, "data/raw_data/settings.parquet") 
 write_parquet(stats_raw_data, "data/raw_data/stats.parquet") 
 
-         
+#### Clean up all object ####
+rm(list = ls())
