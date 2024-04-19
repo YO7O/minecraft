@@ -248,13 +248,13 @@ As further proven by summary of model 2, shown in @tbl-model2, EDPI has a negati
 
 # Discussion
 
-## Most professional player uses similar sensitivity
-
-With 50% of the professional player in the dataset are using EDPI at the range from 205.2 to 298.0 which is shown in @tbl-playerdata, it is evident that most professional players prefer somewhat similar sensitivity. There is a few possible explanation, one of them is they naturally have better balance between large and small camera movement in this range, or they have followed some other player's settings when they started and they never changed it. 
-
 ## No evident on correlation between sensitivity and performance
 
-As illustrated in @fig-model1 and @fig-model2, both models shown no evidence on correlation between sensitivity and performance, whether the performance is measured in average rating or total earnings. Those two variables describes performance in slightly different scenarios, one being the lifetime average performance and another being the performance under pressure. Despite both perfomance metrices shown no evidence on correlation to sensitivity, total earnings shows a slightly more likelihood on negative correlation than average rating with a larger coefficient of EDPI. It might be caused by the lack of micro control on hand movement when human is nervous or under pressure, and high sensitivity players are more prone to be affected by it.
+As illustrated in @fig-model1 and @fig-model2, both models shown no evidence on correlation between sensitivity and performance, whether the performance is measured in average rating or total earnings. Those two variables describes performance in slightly different scenarios, one being the lifetime average performance and another being the performance under pressure. Despite both performance metrics shown no evidence on correlation to sensitivity, total earnings shows a slightly more likelihood on negative correlation than average rating with a larger coefficient of EDPI. It might be caused by the lack of micro control on hand movement when human is nervous or under pressure, and high sensitivity players are more prone to be affected by it.
+
+## Most professional player uses similar sensitivity
+
+Although there is no evident of correlation between sensitivity and performance, most players gravitate towards similar sensitivity, with 50% of the professional player in the dataset are using EDPI at the range from 205.2 to 298.0 which is shown in @tbl-playerdata. There is a few possible explanation, one of them is they naturally have better balance between large and small camera movement in this range, or they have followed some other player's settings when they started and developed a comfort and muscle memory around the close range of EDPI. 
 
 ## Weaknesses and next steps
 
